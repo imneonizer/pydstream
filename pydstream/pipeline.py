@@ -86,7 +86,7 @@ class Pipeline:
         self.pipeline.set_state(self.Gst.State.PLAYING)
 
         try:
-            self.loop.run()
+            loop.run()
         except:
             pass
 
