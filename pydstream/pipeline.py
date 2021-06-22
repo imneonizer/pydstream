@@ -27,10 +27,16 @@ class Pipeline:
         assert element, "Element check failed \n"
         return element
     
-    def link(self, a, b):
-        a = self.__getitem__(a)
-        b = self.__getitem__(b)
-        a.link(b)
+    def link(self, element_a, element_b):
+        element_a = self.__getitem__(element_a)
+        element_b = self.__getitem__(element_b)
+        element_a.link(element_b)
+    
+    def add_probe(self, pad, callback, ptype=None, n=0):
+        element, pad = pad.split(".")
+        ptype = ptype or self.Gst.PadProbeType.BUFFER
+        pad = self.__getitem__(element).get_static_pad(pad)
+        pad.add_probe(ptype, callback, n)
 
     def bus_call(self, bus, message, loop):
         t = message.type

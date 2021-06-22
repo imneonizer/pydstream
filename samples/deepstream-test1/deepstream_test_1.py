@@ -46,8 +46,7 @@ else:
 # Lets add probe to get informed of the meta data generated, we add probe to
 # the sink pad of the osd element, since by that time, the buffer would have
 # had got all the metadata.
-osdsinkpad = pipeline.nvosd.get_static_pad("sink")
-osdsinkpad.add_probe(pipeline.Gst.PadProbeType.BUFFER, osd_sink_pad_buffer_probe, 0)
+pipeline.add_probe(pad='nvosd.sink', callback=osd_sink_pad_buffer_probe)
 
 # start the pipeline
 pipeline.run()
