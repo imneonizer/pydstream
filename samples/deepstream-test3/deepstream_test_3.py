@@ -7,6 +7,8 @@ from pydstream.pipeline import pipeline
 from probe import tiler_src_pad_buffer_probe
 import math
 
+WIDTH, HEIGHT = (1920, 1080)
+
 uri = [
     'file:///opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.h264',
     'file:///opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.h264'
@@ -26,13 +28,13 @@ pipeline.add('multiuri', uri)
 pipeline.add('queue', 5)
 
 # set elements properties
-pipeline.set_property('streammux.width', 1920)
-pipeline.set_property('streammux.height', 1080)
+pipeline.set_property('streammux.width', WIDTH)
+pipeline.set_property('streammux.height', HEIGHT)
 pipeline.set_property('streammux.batch-size', number_sources)
 pipeline.set_property('streammux.batched-push-timeout', 4000000)
 pipeline.set_property('streammux.live-source', pipeline.islive)
-pipeline.set_property("tiler.width", 1920)
-pipeline.set_property("tiler.height", 1080)
+pipeline.set_property("tiler.width", WIDTH)
+pipeline.set_property("tiler.height", HEIGHT)
 pipeline.set_property("tiler.cells", number_sources)
 pipeline.set_property("sink.qos", 0)
 pipeline.set_property('pgie.config-file-path', 'dstest3_pgie_config.txt')
