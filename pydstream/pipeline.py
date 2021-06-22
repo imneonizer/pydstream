@@ -8,26 +8,30 @@ class Pipeline:
         self.Gst.init(None)
         self.pipeline = self.Gst.Pipeline()
         
-        if not self.pipeline:
-            sys.stderr.write(" Unable to create Pipeline \n")
+        assert self.pipeline, "Unable to create Pipeline"
     
     def make(self, element, name=None):
-        if isinstance(element, str):
-            element = self.Gst.ElementFactory.make(element, name)
-        if not element:
-            raise RuntimeError("Unable to create Element: {}".format(name))
+        element = self.Gst.ElementFactory.make(element, name or element)
+        assert element, "Unable to create Element: {}".format(name)
         return element
     
-    def add(self, element):
-        if not element:
-            raise RuntimeError("Unable to add Element")
+    def add(self, element, name=None):
+        if isinstance(element, str):
+            element = self.make(element, name)
+        assert element, "Unable to add Element"
         self.pipeline.add(element)
+        self.__dict__[name] = element
+        return element
     
     def check(self, element):
-        if not element:
-            raise RuntimeError("Element check failed \n")
+        assert element, "Element check failed \n"
         return element
     
+    def link(self, a, b):
+        a = self.__getitem__(a)
+        b = self.__getitem__(b)
+        a.link(b)
+
     def bus_call(self, bus, message, loop):
         t = message.type
         
@@ -63,5 +67,8 @@ class Pipeline:
             pass
 
         self.pipeline.set_state(self.Gst.State.NULL)
+    
+    def __getitem__(self, key):
+        return self.__dict__[key]
 
 pipeline = Pipeline()
