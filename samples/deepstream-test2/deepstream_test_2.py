@@ -11,7 +11,13 @@ pipeline.add('filesrc', 'source')
 pipeline.add('h264parse', 'h264parser')
 pipeline.add('nvv4l2decoder', 'decoder')
 pipeline.add('nvstreammux', 'streammux')
+
 pipeline.add('nvinfer', 'pgie')
+pipeline.add("nvinfer", "sgie1")
+pipeline.add("nvinfer", "sgie2")
+pipeline.add("nvinfer", "sgie3")
+pipeline.add("nvtracker", "tracker")
+
 pipeline.add('nvvideoconvert', 'nvvidconv')
 pipeline.add('nvdsosd', 'nvosd')
 pipeline.add('nvegltransform', 'transform')
@@ -23,7 +29,15 @@ pipeline.set_property('streammux.width', 1920)
 pipeline.set_property('streammux.height', 1080)
 pipeline.set_property('streammux.batch-size', 1)
 pipeline.set_property('streammux.batched-push-timeout', 4000000)
-pipeline.set_property('pgie.config-file-path', 'dstest1_pgie_config.txt')
+
+# set properties of pgie and sgie
+pipeline.set_property('pgie.config-file-path', 'dstest2_pgie_config.txt')
+pipeline.set_property('sgie1.config-file-path', "dstest2_sgie1_config.txt")
+pipeline.set_property('sgie2.config-file-path', "dstest2_sgie2_config.txt")
+pipeline.set_property('sgie3.config-file-path', "dstest2_sgie3_config.txt")
+
+# set properties of tracker
+pipeline.set_property('tracker.config-file-path', "dstest2_tracker_config.txt")
 
 # link elements
 pipeline.link('source', 'h264parser')
@@ -34,7 +48,12 @@ srcpad = pipeline.decoder.get_static_pad("src")
 srcpad.link(sinkpad)
 
 pipeline.link('streammux', 'pgie')
-pipeline.link('pgie', 'nvvidconv')
+pipeline.link('pgie', 'tracker')
+pipeline.link('tracker', 'sgie1')
+pipeline.link('sgie1', 'sgie2')
+pipeline.link('sgie2', 'sgie3')
+
+pipeline.link('sgie3', 'nvvidconv')
 pipeline.link('nvvidconv', 'nvosd')
 
 if pydstream.is_aarch64():

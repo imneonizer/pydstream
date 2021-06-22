@@ -1,7 +1,9 @@
 import sys
+import pydstream
 
 class Pipeline:
     from gi.repository import GObject, Gst
+    unsupported_config = ["tracker"]
 
     def __init__(self):
         self.GObject.threads_init()
@@ -32,11 +34,27 @@ class Pipeline:
         element_b = self.__getitem__(element_b)
         element_a.link(element_b)
     
-    def add_probe(self, pad, callback, ptype=None, n=0):
-        element, pad = pad.split(".")
+    def add_probe(self, element, callback, pad=None, ptype=None, n=0, separator='.'):
+        if separator in element:
+            element, pad = element.split(separator)
+
         ptype = ptype or self.Gst.PadProbeType.BUFFER
         pad = self.__getitem__(element).get_static_pad(pad)
         pad.add_probe(ptype, callback, n)
+    
+    def set_property(self, element, val=None, key=None, separator='.'):
+        if separator in element:
+            element, key = element.split(separator)
+
+        if key == "config-file-path" and element in self.unsupported_config:
+            # explicitly set properties
+            tracker_config = pydstream.read_config(val).get(element)
+            for k,v in tracker_config.items():
+                self.set_property(element=element, key=k, val=v)
+            return
+
+        element = self.__getitem__(element)
+        element.set_property(key, val)
 
     def bus_call(self, bus, message, loop):
         t = message.type
