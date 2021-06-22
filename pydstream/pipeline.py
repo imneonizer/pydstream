@@ -61,7 +61,7 @@ class Pipeline:
         
         if t == self.Gst.MessageType.EOS:
             sys.stdout.write("End-of-stream\n")
-            self.loop.quit()
+            loop.quit()
 
         elif t == self.Gst.MessageType.WARNING:
             err, debug = message.parse_warning()
@@ -70,16 +70,16 @@ class Pipeline:
         elif t == self.Gst.MessageType.ERROR:
             err, debug = message.parse_error()
             sys.stderr.write("Error: %s: %s\n" % (err, debug))
-            self.loop.quit()
+            loop.quit()
 
         return True
     
     def run(self):
         # create an event loop and feed gstreamer bus mesages to it
-        self.loop = self.GObject.MainLoop()
-        self.bus = self.pipeline.get_bus()
-        self.bus.add_signal_watch()
-        self.bus.connect ("message", self.bus_call, self.loop)
+        loop = self.GObject.MainLoop()
+        bus = self.pipeline.get_bus()
+        bus.add_signal_watch()
+        bus.connect ("message", self.bus_call, loop)
         
         # start play back and listen to events
         print("Starting pipeline")
