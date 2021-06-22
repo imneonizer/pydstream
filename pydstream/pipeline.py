@@ -1,7 +1,9 @@
 import sys
-import pydstream
+import math
+from .multistream import MultiStream
+from .common import read_config
 
-class Pipeline:
+class Pipeline(MultiStream):
     from gi.repository import GObject, Gst
     unsupported_config = ["tracker"]
 
@@ -9,7 +11,7 @@ class Pipeline:
         self.GObject.threads_init()
         self.Gst.init(None)
         self.pipeline = self.Gst.Pipeline()
-        
+        self.islive = False
         assert self.pipeline, "Unable to create Pipeline"
     
     def make(self, element, name=None):
@@ -18,21 +20,38 @@ class Pipeline:
         return element
     
     def add(self, element, name=None):
+        if isinstance(name, int):
+            # for creating multi elements
+            for i in range(name):
+                self.add(element, '{}{}'.format(element, i+1))
+            return
+        
+        if element == 'multiuri' and isinstance(name, (list, tuple)):
+            self.add_uri(name)
+            return
+
         if isinstance(element, str):
             element = self.make(element, name)
         assert element, "Unable to add Element"
         self.pipeline.add(element)
         self.__dict__[name] = element
         return element
-    
+
     def check(self, element):
         assert element, "Element check failed \n"
         return element
     
-    def link(self, element_a, element_b):
-        element_a = self.__getitem__(element_a)
-        element_b = self.__getitem__(element_b)
-        element_a.link(element_b)
+    def link(self, element_a, element_b=None, separator="."):
+        if separator in element_a and element_b is None:
+            print("Linking:", element_a.replace(separator, " -> "))
+            elements = element_a.split(separator)
+            l = len(elements)
+            for i in range(l - 1):
+                self.link(elements[i], elements[i+1])
+        else:
+            element_a = self.__getitem__(element_a)
+            element_b = self.__getitem__(element_b)
+            element_a.link(element_b)
     
     def add_probe(self, element, callback, pad=None, ptype=None, n=0, separator='.'):
         if separator in element:
@@ -48,13 +67,26 @@ class Pipeline:
 
         if key == "config-file-path" and element in self.unsupported_config:
             # explicitly set properties
-            tracker_config = pydstream.read_config(val).get(element)
+            tracker_config = read_config(val).get(element)
             for k,v in tracker_config.items():
                 self.set_property(element=element, key=k, val=v)
             return
 
+        if key == 'cells' and isinstance(val, int):
+            rows = int(math.sqrt(val))
+            columns = int(math.ceil((1.0*val)/rows))
+            element = self.__getitem__(element)
+            element.set_property('rows', rows)
+            element.set_property('columns', columns)
+            return
+
         element = self.__getitem__(element)
         element.set_property(key, val)
+    
+    def get_property(self, element, key=None, separator="."):
+        if separator in element:
+            element, key = element.split(separator)
+        return self.__getitem__(element).get_property(key)
 
     def bus_call(self, bus, message, loop):
         t = message.type
@@ -87,8 +119,9 @@ class Pipeline:
 
         try:
             loop.run()
-        except:
-            pass
+        except KeyboardInterrupt:
+            self.pipeline.set_state(self.Gst.State.NULL)
+            loop.quit()
 
         self.pipeline.set_state(self.Gst.State.NULL)
     

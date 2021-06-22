@@ -1,0 +1,60 @@
+import sys
+sys.path.append("../../")
+
+import pyds
+import pydstream
+from pydstream.pipeline import pipeline
+from probe import tiler_src_pad_buffer_probe
+import math
+
+uri = [
+    'file:///opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.h264',
+    'file:///opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.h264'
+]
+
+number_sources = len(uri)
+
+# create elements
+pipeline.add('nvstreammux', 'streammux')
+pipeline.add('nvinfer', 'pgie')
+pipeline.add("nvmultistreamtiler", "tiler")
+pipeline.add('nvvideoconvert', 'nvvidconv')
+pipeline.add('nvdsosd', 'nvosd')
+pipeline.add('nvegltransform', 'transform')
+pipeline.add('nveglglessink', 'sink')
+pipeline.add('multiuri', uri)
+pipeline.add('queue', 5)
+
+# set elements properties
+pipeline.set_property('streammux.width', 1920)
+pipeline.set_property('streammux.height', 1080)
+pipeline.set_property('streammux.batch-size', number_sources)
+pipeline.set_property('streammux.batched-push-timeout', 4000000)
+pipeline.set_property('streammux.live-source', pipeline.islive)
+pipeline.set_property("tiler.width", 1920)
+pipeline.set_property("tiler.height", 1080)
+pipeline.set_property("tiler.cells", number_sources)
+pipeline.set_property("sink.qos", 0)
+pipeline.set_property('pgie.config-file-path', 'dstest3_pgie_config.txt')
+pipeline.set_property('nvosd.process-mode', 0)
+pipeline.set_property('nvosd.display-text', 0)
+
+# adjust batch size based on input sources
+pipeline.override_property("pgie.batch-size", number_sources)
+# pipeline.override_property('streammux.live-source', 1)
+
+# link elements
+pipeline.link('streammux.queue1.pgie.queue2.tiler.queue3.nvvidconv.queue4.nvosd')
+
+if pydstream.is_aarch64():
+    pipeline.link('nvosd.queue5.transform.sink')
+else:
+    pipeline.link('nvosd.queue5.sink')
+
+# Lets add probe to get informed of the meta data generated, we add probe to
+# the sink pad of the osd element, since by that time, the buffer would have
+# had got all the metadata.
+pipeline.add_probe('pgie.src', callback=tiler_src_pad_buffer_probe)
+
+# start the pipeline
+pipeline.run()
