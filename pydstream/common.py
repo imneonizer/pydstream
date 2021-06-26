@@ -1,3 +1,11 @@
+import sys
+import platform
+sys.path.append('/opt/nvidia/deepstream/deepstream/lib')
+
+import gi
+gi.require_version('Gst', '1.0')
+from gi.repository import GObject, Gst
+
 import platform
 import sys
 import time
@@ -24,28 +32,43 @@ def read_config(path):
 
     return config_args
 
-class GETFPS:
-    def __init__(self,stream_id):
-        self.start_time = time.time()
-        self.is_first = True
+class Fps:
+    """class to store fps of a stream"""
+    def __init__(self, name, interval=5):
+        self.name = name
         self.frame_count = 0
-        self.stream_id = stream_id
+        self.interval = interval
+        self.st = time.time()
+        self.fps = 0
 
-    def get_fps(self):
-        end_time = time.time()
-        if(self.is_first):
-            self.start_time = end_time
-            self.is_first = False
-
-        if(end_time-self.start_time>5):
-            print("\n**********************FPS*****************************************")
-            print("Fps of stream", self.stream_id, "is ", float(self.frame_count)/5.0)
-            print()
+    def update(self):
+        et = time.time()
+        if et - self.st > self.interval:
+            self.st = et
+            self.fps = round(self.frame_count / self.interval, 2)
             self.frame_count = 0
-            self.start_time = end_time
         else:
-            self.frame_count=self.frame_count+1
+            self.frame_count += 1
 
-    def print_data(self):
-        print('frame_count=',self.frame_count)
-        print('start_time=',self.start_time)
+class Perf:
+    def __init__(self, interval=5):
+        self.streams = {}
+        self.interval = interval
+        self.st = time.time()
+        self.isfirst = True
+
+    def update(self, name, stdout=True):
+        try:
+            self.streams[name].update()
+            if stdout and (time.time() - self.st > self.interval):
+                self.st = time.time()
+                
+                if self.isfirst:
+                    self.isfirst = False; return
+                
+                print("\n**********************FPS*****************************************")
+                for (name, stream) in sorted(self.streams.items(), key=lambda x:x[0]):
+                    print(f"FPS of {stream.name} is {stream.fps}")
+        except:
+            self.streams[name] = Fps(name)
+            return self.update(name)

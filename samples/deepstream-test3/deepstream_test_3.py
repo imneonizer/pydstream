@@ -3,7 +3,6 @@ sys.path.append("../../")
 
 import pyds
 import pydstream
-from pydstream.pipeline import pipeline
 from probe import tiler_src_pad_buffer_probe
 import math
 
@@ -15,6 +14,7 @@ uri = [
 ]
 
 number_sources = len(uri)
+pipeline = pydstream.Pipeline()
 
 # create elements
 pipeline.add('nvstreammux', 'streammux')
@@ -43,7 +43,7 @@ pipeline.set_property('nvosd.display-text', 0)
 
 # adjust batch size based on input sources
 pipeline.override_property("pgie.batch-size", number_sources)
-# pipeline.override_property('streammux.live-source', 1)
+pipeline.override_property('streammux.live-source', 1)
 
 # link elements
 pipeline.link('streammux.queue1.pgie.queue2.tiler.queue3.nvvidconv.queue4.nvosd')

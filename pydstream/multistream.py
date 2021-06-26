@@ -8,12 +8,12 @@ class MultiStream:
 
         # Need to check if the pad created by the decodebin is for video and not
         # audio.
-        print("gstname =", gstname)
+        # print("gstname =", gstname)
         if(gstname.find("video") != -1):
             # Link the decodebin pad only if decodebin has picked nvidia
             # decoder plugin nvdec_*. We do this by checking if the pad caps contain
             # NVMM memory features.
-            print("features =",features)
+            # print("features =",features)
             if features.contains("memory:NVMM"):
                 # Get the source bin ghost pad
                 bin_ghost_pad = source_bin.get_static_pad("src")

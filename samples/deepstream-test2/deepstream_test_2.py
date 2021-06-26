@@ -3,10 +3,11 @@ sys.path.append("../../")
 
 import pyds
 import pydstream
-from pydstream.pipeline import pipeline
+from pydstream.pipeline import Pipeline
 from probe import osd_sink_pad_buffer_probe
 
 # create elements
+pipeline = Pipeline()
 pipeline.add('filesrc', 'source')
 pipeline.add('h264parse', 'h264parser')
 pipeline.add('nvv4l2decoder', 'decoder')
