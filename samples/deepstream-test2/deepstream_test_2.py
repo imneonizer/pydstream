@@ -41,27 +41,18 @@ pipeline.set_property('sgie3.config-file-path', "dstest2_sgie3_config.txt")
 pipeline.set_property('tracker.config-file-path', "dstest2_tracker_config.txt")
 
 # link elements
-pipeline.link('source', 'h264parser')
-pipeline.link('h264parser', 'decoder')
+pipeline.link('source.h264parser.decoder')
 
 sinkpad = pipeline.streammux.get_request_pad("sink_0")
 srcpad = pipeline.decoder.get_static_pad("src")
 srcpad.link(sinkpad)
 
-pipeline.link('streammux', 'pgie')
-pipeline.link('pgie', 'tracker')
-pipeline.link('tracker', 'sgie1')
-pipeline.link('sgie1', 'sgie2')
-pipeline.link('sgie2', 'sgie3')
-
-pipeline.link('sgie3', 'nvvidconv')
-pipeline.link('nvvidconv', 'nvosd')
+pipeline.link('streammux.pgie.tracker.sgie1.sgie2.sgie3.nvvidconv.nvosd')
 
 if pydstream.is_aarch64():
-    pipeline.link('nvosd', 'transform')
-    pipeline.link('transform', 'sink')
+    pipeline.link('nvosd.transform.sink')
 else:
-    pipeline.link('nvosd', 'sink')
+    pipeline.link('nvosd.sink')
 
 # Lets add probe to get informed of the meta data generated, we add probe to
 # the sink pad of the osd element, since by that time, the buffer would have
