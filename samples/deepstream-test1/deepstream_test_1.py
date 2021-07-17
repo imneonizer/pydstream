@@ -15,8 +15,10 @@ pipeline.add('nvstreammux', 'streammux')
 pipeline.add('nvinfer', 'pgie')
 pipeline.add('nvvideoconvert', 'nvvidconv')
 pipeline.add('nvdsosd', 'nvosd')
-pipeline.add('nvegltransform', 'transform')
 pipeline.add('nveglglessink', 'sink')
+
+if pydstream.is_aarch64():
+    pipeline.add('nvegltransform', 'transform')
 
 # set elements properties
 pipeline.set_property('source.location', '/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.h264')

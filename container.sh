@@ -1,8 +1,10 @@
 #!/bin/bash
 
 # Check if running with root and atleast one arg is passed
-if  [ "$EUID" -ne 0 ];then sudo -E $0 $@; exit 0; fi
-if  [ !$1 ];then echo "usage: $0 [--build | --run | --attach | --kill]"; exit 1; fi
+if  [ "$EUID" -ne 0 ];then
+    echo "usage: sudo $0 [--build | --run | --attach | --kill]"
+    exit 1
+fi
 
 # select correct dockerfile based on platform
 if [ -f "/etc/nv_tegra_release" ];then

@@ -4,8 +4,8 @@ import contextlib
 
 class BaseProbe:
     def __init__(self):
-        self.pad_probe_return = Gst.PadProbeReturn.OK
-        
+        self.perf = Perf()
+    
     def __call__(self, pad, info, u_data):
         """
         Act as decorator to verify GstBuffer,
@@ -14,8 +14,6 @@ class BaseProbe:
         self.pad = pad
         self.info = info
         self.u_data = u_data
-        assert self.info.get_buffer(), "Unable to get GstBuffer"
-        assert hasattr(self, "__callback__"), "__callback__ is not defined"
         
         l_frame = self.batch_meta.frame_meta_list
         while l_frame is not None:
@@ -28,13 +26,14 @@ class BaseProbe:
                 frame_meta = pyds.NvDsFrameMeta.cast(l_frame.data)
             except StopIteration: break
             
-            self.__callback__(frame_meta)
+            # user defined callback for processing metadata
+            cb_return = self.__callback__(frame_meta)
 
             try:
                 l_frame = l_frame.next
             except StopIteration: break
-            
-        return self.pad_probe_return
+        
+        return cb_return or Gst.PadProbeReturn.OK
     
     @property
     def batch_meta(self):

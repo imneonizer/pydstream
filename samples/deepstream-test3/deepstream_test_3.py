@@ -22,10 +22,12 @@ pipeline.add('nvinfer', 'pgie')
 pipeline.add("nvmultistreamtiler", "tiler")
 pipeline.add('nvvideoconvert', 'nvvidconv')
 pipeline.add('nvdsosd', 'nvosd')
-pipeline.add('nvegltransform', 'transform')
 pipeline.add('nveglglessink', 'sink')
 pipeline.add('multiuri', uri)
 pipeline.add('queue', 5)
+
+if pydstream.is_aarch64():
+    pipeline.add('nvegltransform', 'transform')
 
 # set elements properties
 pipeline.set_property('streammux.width', WIDTH)

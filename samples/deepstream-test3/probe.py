@@ -3,8 +3,6 @@ sys.path.append("../../")
 
 import pyds
 import pydstream
-import time
-perf = pydstream.Perf()
 
 PGIE_CLASS_ID_VEHICLE = 0
 PGIE_CLASS_ID_BICYCLE = 1
@@ -71,6 +69,6 @@ class Probe(pydstream.BaseProbe):
         print(f"Frame Number={frame_number} Number of Objects={num_rects} Vehicle_count={vehicle_count} Person_count={person_count}")
         
         # Get frame rate through this probe
-        perf.update(f"stream-{frame_meta.pad_index}")
+        self.perf.update(f"stream-{frame_meta.pad_index}")
 
 tiler_src_pad_buffer_probe = Probe()
