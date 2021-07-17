@@ -4,7 +4,6 @@ sys.path.append("../../")
 import pyds
 import pydstream
 from probe import tiler_src_pad_buffer_probe
-import math
 
 WIDTH, HEIGHT = (1920, 1080)
 

@@ -1,3 +1,5 @@
+import sys
+
 class MultiStream:
     def cb_newpad(self, decodebin, decoder_src_pad, data):
         caps = decoder_src_pad.get_current_caps()
@@ -74,9 +76,3 @@ class MultiStream:
             sinkpad = self.check(self.streammux.get_request_pad(padname))
             srcpad = self.check(source_bin.get_static_pad("src"))
             srcpad.link(sinkpad)
-    
-    def override_property(self, element, value):
-        orig_val = self.get_property(element)
-        if orig_val != value:
-            print("WARNING: Overriding {} {} with {}".format(element, orig_val, value))
-            self.set_property(element, value)

@@ -82,6 +82,12 @@ class Pipeline(MultiStream):
 
         element = self.__getitem__(element)
         element.set_property(key, val)
+
+    def override_property(self, element, value):
+        orig_val = self.get_property(element)
+        if orig_val != value:
+            print("WARNING: Overriding {} {} with {}".format(element, orig_val, value))
+            self.set_property(element, value)
     
     def get_property(self, element, key=None, separator="."):
         if separator in element:
