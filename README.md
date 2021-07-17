@@ -1,60 +1,47 @@
-# Maskout
-A Jetson based DeepStream application to identify areas of high risk through intuitive heat maps.
-[Read Medium blog](https://medium.com/@Smartcow_ai/605335f63d50).
+# DeepStream Python Apps
 
-## Workflow
-- If a face without mask is detected then the region will be painted on the screen.
-- If more and more faces without mask cross through the same region the area will be painted with more intense colors.
-- If nobody has crossed for a very long time the color intensity will start fading out.
+This repository contains Python bindings and sample applications for the [DeepStream SDK](https://developer.nvidia.com/deepstream-sdk).  
 
-![Frames](Docs/frames.png)
+SDK version supported: 5.0
 
->In other words, a Heat Map will be generated continuously representing regions where faces have been detected recently. Allowing us to see through the time.
+Download the latest release package complete with bindings and sample applications from the [release section](../../releases). 
 
-The application is containerized and uses DeepStream as the backbone to run TensorRT optimized models for the maximum throughput. Built on top of [deepstream-imagedata-multistream](https://github.com/NVIDIA-AI-IOT/deepstream_python_apps/tree/master/apps/deepstream-imagedata-multistream) sample app.
+Please report any issues or bugs on the [Deepstream SDK Forums](https://devtalk.nvidia.com/default/board/209).  
 
-## Steps to run
-- I have used Jetson Nano Devkit (2GB), you can set up on any other Jetson device.
-- Make sure `nvidia-docker` is installed on the device (it comes pre-installed with JetPack 4.3+).
-- clone the maskout repository.
-    ````
-    $ git clone https://github.com/imneonizer/maskout.git
-    $ cd maskout
-    ````
-- Build the docker container.
-    ````
-    $ sudo docker build . -t maskout
-    ````
-- Run the docker container.
-    ````
-    export DISPLAY=:1
-    xhost +
-    sudo docker run --rm -it --gpus all \
-        -v /home/$USER/videos:/videos \
-        -e DISPLAY=$DISPLAY -v /tmp/.X11-unix/:/tmp/.X11-unix --net host \
-        --name maskout-ds-container --hostname maskout \
-        maskout bash
-    ````
-- Once inside the container, you can run the DeepStream application using:
-    - `
-    python3 maskout_app.py file:///videos/1.mp4` or
-    - `python3 maskout_app.py rtsp://<user>:<pass>@<camera-ip>`.
-- To view the Heatmap, open another terminal and execute below command.
-    ````
-    sudo docker exec -it maskout-ds-container bash run_ui.sh
-    ````
-    This will keep on fetching frames from the DeepStream container and serving to port `5000`.
-    You can keep this application running and restart the DeepStream application with different input streams. visit http://localhost:5000 to view heatmap.
-    ![Heatmap](Docs/heatmap-browser.png)
-- Under high load, the RAM consumption went up to 1.2 GB + 600 MB used by Linux Kernel.
+* [Python Bindings](#metadata_bindings)
+* [Sample Applications](#sample_applications)
 
-## Notes
-- The application is containarized and requires 2.6 Gb of disk space.
-- While flashing Jetson Nano using SDK manager, unselect `DeepStream` as we are going to use containers, it will save you 800 Mb of space.
-- After flashing only few MB's are left on the SD card even though your SD card has more storage, this can be reclaimed by going to `Disks` setting then extending the unallocated space with root.
-- If you run out of `RAM` while building or running the container, on Jetson Nano (2Gb) you can:
-    - remove `GTK` and run Jetson on headless mode.
-    - add `swap-memory` to get more ram.
-- This application only supports single stream processing.
-- UI can be run sepearately on another machine, it requires two ports for the communication one for rtsp stream and another for heatmap. using this method you can do some of the processing on client side.
-- If you don't care about drawing bounding boxes, the inference can be boosted and more FPS can be achieved by setting `enable_osd = False` in first line of the `main()` inside `maskout_app.py`
+<a name="metadata_bindings"></a>
+
+## Python Bindings
+
+DeepStream pipelines can be constructed using Gst Python, the GStreamer framework's Python bindings. For accessing DeepStream MetaData, 
+Python bindings are provided in the form of a compiled module which is included in the DeepStream SDK. This module is generated using [Pybind11](https://github.com/pybind/pybind11).  
+
+<p align="center">
+<img src="Docs/python-app-pipeline.png" alt="bindings pipeline" height="600px"/>
+</p>
+
+
+These bindings support a Python interface to the MetaData structures and functions. Usage of this interface is documented in the [HOW-TO Guide](HOWTO.md) and demonstrated in the sample applications.  
+This release adds bindings for decoded image buffers (NvBufSurface) as well as inference output tensors (NvDsInferTensorMeta).
+
+<a name="sample_applications"></a>
+## Sample Applications
+
+Sample applications provided here demonstrate how to work with DeepStream pipelines using Python.  
+The sample applications require [MetaData Bindings](#metadata_bindings) to work.  
+
+To run the sample applications or write your own, please consult the [HOW-TO Guide](HOWTO.md)  
+
+<p align="center">
+<img src="Docs/test3-app.png" alt="deepstream python app screenshot" height="400px"/>
+</p>
+
+
+We currently provide the following sample applications:
+* [deepstream-test1](apps/deepstream-test1) -- 4-class object detection pipeline
+* [deepstream-test2](apps/deepstream-test2) -- 4-class object detection, tracking and attribute classification pipeline
+* [deepstream-test3](apps/deepstream-test3) -- multi-stream pipeline performing 4-class object detection
+
+Detailed application information is provided in each application's subdirectory under [samples](samples). 
