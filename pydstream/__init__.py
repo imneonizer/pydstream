@@ -1,3 +1,3 @@
-from .common import * #is_aarch64, read_config, perf, GETFPS
+from .common import *
 from .pipeline import Pipeline
 from .baseprobe import BaseProbe

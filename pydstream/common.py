@@ -10,9 +10,14 @@ import platform
 import sys
 import time
 import configparser
+import ctypes
 
 def is_aarch64():
     return platform.uname()[4] == 'aarch64'
+
+def long_to_int(l):
+    value = ctypes.c_int(l & 0xffffffff).value
+    return value
 
 def read_config(path):
     parser = configparser.ConfigParser()
@@ -73,3 +78,5 @@ class Perf:
         except:
             self.streams[name] = Fps(name)
             return self.update(name)
+
+perf = Perf()
