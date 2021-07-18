@@ -19,13 +19,7 @@ class Pipeline(MultiStream):
         assert element, "Unable to create Element: {}".format(name)
         return element
     
-    def add(self, element, name=None):
-        if isinstance(name, int):
-            # for creating multi elements
-            for i in range(name):
-                self.add(element, '{}{}'.format(element, i+1))
-            return
-        
+    def add(self, element, name):
         if element == 'multiuri' and isinstance(name, (list, tuple)):
             self.add_uri(name)
             return
@@ -33,6 +27,8 @@ class Pipeline(MultiStream):
         if isinstance(element, str):
             element = self.make(element, name)
         assert element, "Unable to add Element"
+        assert name not in self.__dict__, f"Element with name: {name} already created"
+        
         self.pipeline.add(element)
         self.__dict__[name] = element
         return element
@@ -41,10 +37,10 @@ class Pipeline(MultiStream):
         assert element, "Element check failed \n"
         return element
     
-    def link(self, element_a, element_b=None, separator="."):
-        if separator in element_a and element_b is None:
-            print("Linking:", element_a.replace(separator, " -> "))
-            elements = element_a.split(separator)
+    def link(self, element_a, element_b=None, delimiter="."):
+        if delimiter in element_a and element_b is None:
+            print("Linking:", element_a.replace(delimiter, " -> "))
+            elements = element_a.split(delimiter)
             l = len(elements)
             for i in range(l - 1):
                 self.link(elements[i], elements[i+1])
@@ -53,17 +49,17 @@ class Pipeline(MultiStream):
             element_b = self.__getitem__(element_b)
             element_a.link(element_b)
     
-    def add_probe(self, element, callback, pad=None, ptype=None, n=0, separator='.'):
-        if separator in element:
-            element, pad = element.split(separator)
+    def add_probe(self, element, callback, pad=None, ptype=None, n=0, delimiter='.'):
+        if delimiter in element:
+            element, pad = element.split(delimiter)
 
         ptype = ptype or self.Gst.PadProbeType.BUFFER
         pad = self.__getitem__(element).get_static_pad(pad)
         pad.add_probe(ptype, callback, n)
     
-    def set_property(self, element, val=None, key=None, separator='.'):
-        if separator in element:
-            element, key = element.split(separator)
+    def set_property(self, element, val=None, key=None, delimiter='.'):
+        if delimiter in element:
+            element, key = element.split(delimiter)
 
         if key == "config-file-path" and element in self.unsupported_config:
             # explicitly set properties
@@ -89,9 +85,9 @@ class Pipeline(MultiStream):
             print("WARNING: Overriding {} {} with {}".format(element, orig_val, value))
             self.set_property(element, value)
     
-    def get_property(self, element, key=None, separator="."):
-        if separator in element:
-            element, key = element.split(separator)
+    def get_property(self, element, key=None, delimiter="."):
+        if delimiter in element:
+            element, key = element.split(delimiter)
         return self.__getitem__(element).get_property(key)
 
     def bus_call(self, bus, message, loop):

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Check if running with root and atleast one arg is passed
+# Check if running with root
 if  [ "$EUID" -ne 0 ];then
     echo "usage: sudo $0 [--build | --run | --attach | --kill]"
     exit 1

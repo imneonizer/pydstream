@@ -10,14 +10,15 @@ PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
 
 class Probe(pydstream.BaseProbe):
-    obj_counter = {
-        PGIE_CLASS_ID_VEHICLE:0,
-        PGIE_CLASS_ID_PERSON:0,
-        PGIE_CLASS_ID_BICYCLE:0,
-        PGIE_CLASS_ID_ROADSIGN:0
-    }
     
     def __callback__(self, frame_meta):
+        obj_counter = {
+            PGIE_CLASS_ID_VEHICLE:0,
+            PGIE_CLASS_ID_PERSON:0,
+            PGIE_CLASS_ID_BICYCLE:0,
+            PGIE_CLASS_ID_ROADSIGN:0
+        }
+        
         """
         print("Frame Number is ", frame_meta.frame_num)
         print("Source id is ", frame_meta.source_id)
@@ -37,13 +38,13 @@ class Probe(pydstream.BaseProbe):
                 obj_meta = pyds.NvDsObjectMeta.cast(l_obj.data)
             except StopIteration: break
             
-            self.obj_counter[obj_meta.class_id] += 1
+            obj_counter[obj_meta.class_id] += 1
             
             try: 
                 l_obj = l_obj.next
             except StopIteration: break
         
-        vehicle_count, person_count = self.obj_counter[PGIE_CLASS_ID_VEHICLE], self.obj_counter[PGIE_CLASS_ID_PERSON]
+        vehicle_count, person_count = obj_counter[PGIE_CLASS_ID_VEHICLE], obj_counter[PGIE_CLASS_ID_PERSON]
         
         """
         display_meta = pyds.nvds_acquire_display_meta_from_pool(self.batch_meta)

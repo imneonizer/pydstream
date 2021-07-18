@@ -8,18 +8,18 @@ PGIE_CLASS_ID_VEHICLE = 0
 PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
+past_tracking_meta = [0]
 
 class Probe(pydstream.BaseProbe):
-    obj_counter = {
-        PGIE_CLASS_ID_VEHICLE:0,
-        PGIE_CLASS_ID_PERSON:0,
-        PGIE_CLASS_ID_BICYCLE:0,
-        PGIE_CLASS_ID_ROADSIGN:0
-    }
-    
-    past_tracking_meta = [0]
-    
+
     def __callback__(self, frame_meta):
+        obj_counter = {
+            PGIE_CLASS_ID_VEHICLE:0,
+            PGIE_CLASS_ID_PERSON:0,
+            PGIE_CLASS_ID_BICYCLE:0,
+            PGIE_CLASS_ID_ROADSIGN:0
+        }
+    
         frame_number = frame_meta.frame_num
         num_rects = frame_meta.num_obj_meta
         l_obj = frame_meta.obj_meta_list
@@ -31,10 +31,10 @@ class Probe(pydstream.BaseProbe):
             except StopIteration:
                 break
             
-            self.obj_counter[obj_meta.class_id] += 1
+            obj_counter[obj_meta.class_id] += 1
             
             try: 
-                l_obj=l_obj.next
+                l_obj = l_obj.next
             except StopIteration:
                 break
 
@@ -50,7 +50,7 @@ class Probe(pydstream.BaseProbe):
         # memory will not be claimed by the garbage collector.
         # Reading the display_text field here will return the C address of the
         # allocated string. Use pyds.get_string() to get the string content.
-        py_nvosd_text_params.display_text = "Frame Number={} Number of Objects={} Vehicle_count={} Person_count={}".format(frame_number, num_rects, self.obj_counter[PGIE_CLASS_ID_VEHICLE], self.obj_counter[PGIE_CLASS_ID_PERSON])
+        py_nvosd_text_params.display_text = "Frame Number={} Number of Objects={} Vehicle_count={} Person_count={}".format(frame_number, num_rects, obj_counter[PGIE_CLASS_ID_VEHICLE], obj_counter[PGIE_CLASS_ID_PERSON])
 
         # Now set the offsets where the string should appear
         py_nvosd_text_params.x_offset = 10
@@ -74,7 +74,7 @@ class Probe(pydstream.BaseProbe):
         pyds.nvds_add_display_meta_to_frame(frame_meta, display_meta)
         
         #past traking meta data
-        if (self.past_tracking_meta[0] == 1):
+        if (past_tracking_meta[0] == 1):
             l_user = self.batch_meta.batch_user_meta_list
             
             while l_user is not None:

@@ -71,7 +71,7 @@ class MultiStream:
                 self.islive = True
             
             source_bin = self.check(self.create_source_bin(i, uri_name))
-            self.add(source_bin)
+            self.add(source_bin, f"source_bin_{i}")
             padname = "sink_%u" % i
             sinkpad = self.check(self.streammux.get_request_pad(padname))
             srcpad = self.check(source_bin.get_static_pad("src"))
