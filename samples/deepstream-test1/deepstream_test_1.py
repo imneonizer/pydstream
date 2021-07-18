@@ -26,6 +26,7 @@ pipeline.set_property('streammux.height', 1080)
 pipeline.set_property('streammux.batch-size', 1)
 pipeline.set_property('streammux.batched-push-timeout', 4000000)
 pipeline.set_property('pgie.config-file-path', 'dstest1_pgie_config.txt')
+# pipeline.override_property('streammux.live-source', 1)
 
 # link elements
 pipeline.link('source.h264parser.decoder')

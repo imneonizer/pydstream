@@ -32,17 +32,12 @@ class Probe(pydstream.BaseProbe):
         l_obj = frame_meta.obj_meta_list
         num_rects = frame_meta.num_obj_meta
 
-        while l_obj is not None:
-            try:
+        with self.suppress:
+            while l_obj is not None:
                 # Casting l_obj.data to pyds.NvDsObjectMeta
                 obj_meta = pyds.NvDsObjectMeta.cast(l_obj.data)
-            except StopIteration: break
-            
-            obj_counter[obj_meta.class_id] += 1
-            
-            try: 
+                obj_counter[obj_meta.class_id] += 1
                 l_obj = l_obj.next
-            except StopIteration: break
         
         vehicle_count, person_count = obj_counter[PGIE_CLASS_ID_VEHICLE], obj_counter[PGIE_CLASS_ID_PERSON]
         

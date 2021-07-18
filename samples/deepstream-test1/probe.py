@@ -22,21 +22,14 @@ class Probe(pydstream.BaseProbe):
         num_rects = frame_meta.num_obj_meta
         
         l_obj = frame_meta.obj_meta_list
-        while l_obj is not None:
-            try:
+        
+        with self.suppress:
+            while l_obj is not None:
                 # Casting l_obj.data to pyds.NvDsObjectMeta
-                #obj_meta=pyds.glist_get_nvds_object_meta(l_obj.data)
                 obj_meta = pyds.NvDsObjectMeta.cast(l_obj.data)
-            except StopIteration:
-                break
-            
-            self.obj_counter[obj_meta.class_id] += 1
-            obj_meta.rect_params.border_color.set(0.0, 0.0, 1.0, 0.0)
-            
-            try: 
+                self.obj_counter[obj_meta.class_id] += 1
+                obj_meta.rect_params.border_color.set(0.0, 0.0, 1.0, 0.0)
                 l_obj = l_obj.next
-            except StopIteration:
-                break
 
         # Acquiring a display meta object. The memory ownership remains in
         # the C code so downstream plugins can still access it. Otherwise

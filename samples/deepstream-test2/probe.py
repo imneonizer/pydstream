@@ -19,24 +19,17 @@ class Probe(pydstream.BaseProbe):
             PGIE_CLASS_ID_BICYCLE:0,
             PGIE_CLASS_ID_ROADSIGN:0
         }
-    
+        
         frame_number = frame_meta.frame_num
         num_rects = frame_meta.num_obj_meta
         l_obj = frame_meta.obj_meta_list
         
-        while l_obj is not None:
-            try:
+        with self.suppress:
+            while l_obj is not None:
                 # Casting l_obj.data to pyds.NvDsObjectMeta
                 obj_meta = pyds.NvDsObjectMeta.cast(l_obj.data)
-            except StopIteration:
-                break
-            
-            obj_counter[obj_meta.class_id] += 1
-            
-            try: 
+                obj_counter[obj_meta.class_id] += 1
                 l_obj = l_obj.next
-            except StopIteration:
-                break
 
         # Acquiring a display meta object. The memory ownership remains in
         # the C code so downstream plugins can still access it. Otherwise
@@ -77,48 +70,41 @@ class Probe(pydstream.BaseProbe):
         if (past_tracking_meta[0] == 1):
             l_user = self.batch_meta.batch_user_meta_list
             
-            while l_user is not None:
-                try:
+            with self.suppress:
+                while l_user is not None:
                     # Note that l_user.data needs a cast to pyds.NvDsUserMeta
                     # The casting is done by pyds.NvDsUserMeta.cast()
                     # The casting also keeps ownership of the underlying memory
                     # in the C code, so the Python garbage collector will leave
                     # it alone
                     user_meta = pyds.NvDsUserMeta.cast(l_user.data)
-                except StopIteration:
-                    break
-                
-                if (user_meta and user_meta.base_meta.meta_type == pyds.NvDsMetaType.NVDS_TRACKER_PAST_FRAME_META):
-                    try:
+                    
+                    if (user_meta and user_meta.base_meta.meta_type == pyds.NvDsMetaType.NVDS_TRACKER_PAST_FRAME_META):
                         # Note that user_meta.user_meta_data needs a cast to pyds.NvDsPastFrameObjBatch
                         # The casting is done by pyds.NvDsPastFrameObjBatch.cast()
                         # The casting also keeps ownership of the underlying memory
                         # in the C code, so the Python garbage collector will leave
                         # it alone
                         pPastFrameObjBatch = pyds.NvDsPastFrameObjBatch.cast(user_meta.user_meta_data)
-                    except StopIteration:
-                        break
+                        
+                        for trackobj in pyds.NvDsPastFrameObjBatch.list(pPastFrameObjBatch):
+                            print("streamId=",trackobj.streamID)
+                            print("surfaceStreamID=",trackobj.surfaceStreamID)
+                            for pastframeobj in pyds.NvDsPastFrameObjStream.list(trackobj):
+                                print("numobj=",pastframeobj.numObj)
+                                print("uniqueId=",pastframeobj.uniqueId)
+                                print("classId=",pastframeobj.classId)
+                                print("objLabel=",pastframeobj.objLabel)
+                                for objlist in pyds.NvDsPastFrameObjList.list(pastframeobj):
+                                    print('frameNum:', objlist.frameNum)
+                                    print('tBbox.left:', objlist.tBbox.left)
+                                    print('tBbox.width:', objlist.tBbox.width)
+                                    print('tBbox.top:', objlist.tBbox.top)
+                                    print('tBbox.right:', objlist.tBbox.height)
+                                    print('confidence:', objlist.confidence)
+                                    print('age:', objlist.age)
                     
-                    for trackobj in pyds.NvDsPastFrameObjBatch.list(pPastFrameObjBatch):
-                        print("streamId=",trackobj.streamID)
-                        print("surfaceStreamID=",trackobj.surfaceStreamID)
-                        for pastframeobj in pyds.NvDsPastFrameObjStream.list(trackobj):
-                            print("numobj=",pastframeobj.numObj)
-                            print("uniqueId=",pastframeobj.uniqueId)
-                            print("classId=",pastframeobj.classId)
-                            print("objLabel=",pastframeobj.objLabel)
-                            for objlist in pyds.NvDsPastFrameObjList.list(pastframeobj):
-                                print('frameNum:', objlist.frameNum)
-                                print('tBbox.left:', objlist.tBbox.left)
-                                print('tBbox.width:', objlist.tBbox.width)
-                                print('tBbox.top:', objlist.tBbox.top)
-                                print('tBbox.right:', objlist.tBbox.height)
-                                print('confidence:', objlist.confidence)
-                                print('age:', objlist.age)
-                try:
                     l_user = l_user.next
-                except StopIteration:
-                    break
         
         # Get frame rate through this probe
         self.perf.update(f"stream-{frame_meta.pad_index}")

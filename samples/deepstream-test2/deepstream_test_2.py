@@ -31,6 +31,7 @@ pipeline.set_property('streammux.width', 1920)
 pipeline.set_property('streammux.height', 1080)
 pipeline.set_property('streammux.batch-size', 1)
 pipeline.set_property('streammux.batched-push-timeout', 4000000)
+# pipeline.override_property('streammux.live-source', 1)
 
 # set properties of pgie and sgie
 pipeline.set_property('pgie.config-file-path', 'dstest2_pgie_config.txt')

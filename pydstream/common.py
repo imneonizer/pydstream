@@ -74,7 +74,6 @@ class Perf:
                 print("\n**********************FPS*****************************************")
                 for (name, stream) in sorted(self.streams.items(), key=lambda x:x[0]):
                     print(f"FPS of {stream.name} is {stream.fps}")
-                print()
         except:
             self.streams[name] = Fps(name)
             return self.update(name)

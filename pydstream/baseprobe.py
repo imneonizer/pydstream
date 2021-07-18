@@ -14,24 +14,22 @@ class BaseProbe:
         self.pad = pad
         self.info = info
         self.u_data = u_data
-        
         l_frame = self.batch_meta.frame_meta_list
-        while l_frame is not None:
-            try:
+        
+        with self.suppress:
+            while l_frame is not None:
                 # Note that l_frame.data needs a cast to pyds.NvDsFrameMeta
                 # The casting is done by pyds.NvDsFrameMeta.cast()
                 # The casting also keeps ownership of the underlying memory
                 # in the C code, so the Python garbage collector will leave
                 # it alone.
                 frame_meta = pyds.NvDsFrameMeta.cast(l_frame.data)
-            except StopIteration: break
-            
-            # user defined callback for processing metadata
-            cb_return = self.__callback__(frame_meta)
-
-            try:
+                
+                # user defined callback for processing metadata
+                cb_return = self.__callback__(frame_meta)
+                
+                # get next frame
                 l_frame = l_frame.next
-            except StopIteration: break
         
         return cb_return or Gst.PadProbeReturn.OK
     
@@ -43,3 +41,7 @@ class BaseProbe:
         C address of gst_buffer as input, which is obtained with hash(gst_buffer)
         """
         return pyds.gst_buffer_get_nvds_batch_meta(hash(self.info.get_buffer()))
+    
+    @property
+    def suppress(self):
+        return contextlib.suppress(StopIteration)
