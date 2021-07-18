@@ -73,8 +73,8 @@ if args.topic is not None:
 # link elements
 pipeline.link('source.h264parser.decoder')
 
-sinkpad = pipeline.streammux.get_request_pad("sink_0")
 srcpad = pipeline.decoder.get_static_pad("src")
+sinkpad = pipeline.streammux.get_request_pad("sink_0")
 pipeline.link(srcpad, sinkpad)
 
 pipeline.link('streammux.pgie.nvvidconv.nvosd.tee')

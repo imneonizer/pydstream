@@ -5,6 +5,7 @@ import contextlib
 class BaseProbe:
     def __init__(self):
         self.perf = Perf()
+        self.enable_perf = True
     
     def __call__(self, pad, info, u_data):
         """
@@ -14,22 +15,20 @@ class BaseProbe:
         self.pad = pad
         self.info = info
         self.u_data = u_data
-        l_frame = self.batch_meta.frame_meta_list
-        
-        with self.suppress:
-            while l_frame is not None:
-                # Note that l_frame.data needs a cast to pyds.NvDsFrameMeta
-                # The casting is done by pyds.NvDsFrameMeta.cast()
-                # The casting also keeps ownership of the underlying memory
-                # in the C code, so the Python garbage collector will leave
-                # it alone.
-                frame_meta = pyds.NvDsFrameMeta.cast(l_frame.data)
-                
-                # user defined callback for processing metadata
-                cb_return = self.__callback__(frame_meta)
-                
-                # get next frame
-                l_frame = l_frame.next
+
+        for l_frame in self.iterate(self.batch_meta.frame_meta_list):
+            # Note that l_frame.data needs a cast to pyds.NvDsFrameMeta
+            # The casting is done by pyds.NvDsFrameMeta.cast()
+            # The casting also keeps ownership of the underlying memory
+            # in the C code, so the Python garbage collector will leave
+            # it alone.
+            self.frame_meta = pyds.NvDsFrameMeta.cast(l_frame.data)
+            
+            # get fps through this probe
+            self.enable_perf and self.perf.update(self.frame_meta.pad_index)
+            
+            # user defined callback for processing metadata
+            cb_return = self.__callback__()
         
         return cb_return or Gst.PadProbeReturn.OK
     
@@ -43,5 +42,23 @@ class BaseProbe:
         return pyds.gst_buffer_get_nvds_batch_meta(hash(self.info.get_buffer()))
     
     @property
+    def obj_meta_list(self):
+        return self.cast(self.iterate(self.frame_meta.obj_meta_list), pyds.NvDsObjectMeta.cast)
+    
+    @property
+    def user_meta_list(self):
+        return self.cast(self.iterate(self.batch_meta.batch_user_meta_list), pyds.NvDsUserMeta.cast)
+    
+    def cast(self, meta, cast):
+        for i in meta:
+            yield cast(i.data)
+    
+    @property
     def suppress(self):
         return contextlib.suppress(StopIteration)
+    
+    def iterate(self, obj):
+        with self.suppress:
+            while obj is not None:
+                yield obj
+                obj = obj.next

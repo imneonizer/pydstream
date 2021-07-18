@@ -12,7 +12,7 @@ past_tracking_meta = [0]
 
 class Probe(pydstream.BaseProbe):
 
-    def __callback__(self, frame_meta):
+    def __callback__(self):
         obj_counter = {
             PGIE_CLASS_ID_VEHICLE:0,
             PGIE_CLASS_ID_PERSON:0,
@@ -20,16 +20,11 @@ class Probe(pydstream.BaseProbe):
             PGIE_CLASS_ID_ROADSIGN:0
         }
         
-        frame_number = frame_meta.frame_num
-        num_rects = frame_meta.num_obj_meta
-        l_obj = frame_meta.obj_meta_list
+        frame_number = self.frame_meta.frame_num
+        num_rects = self.frame_meta.num_obj_meta
         
-        with self.suppress:
-            while l_obj is not None:
-                # Casting l_obj.data to pyds.NvDsObjectMeta
-                obj_meta = pyds.NvDsObjectMeta.cast(l_obj.data)
-                obj_counter[obj_meta.class_id] += 1
-                l_obj = l_obj.next
+        for obj_meta in self.obj_meta_list:
+            obj_counter[obj_meta.class_id] += 1
 
         # Acquiring a display meta object. The memory ownership remains in
         # the C code so downstream plugins can still access it. Otherwise
@@ -43,7 +38,7 @@ class Probe(pydstream.BaseProbe):
         # memory will not be claimed by the garbage collector.
         # Reading the display_text field here will return the C address of the
         # allocated string. Use pyds.get_string() to get the string content.
-        py_nvosd_text_params.display_text = "Frame Number={} Number of Objects={} Vehicle_count={} Person_count={}".format(frame_number, num_rects, obj_counter[PGIE_CLASS_ID_VEHICLE], obj_counter[PGIE_CLASS_ID_PERSON])
+        py_nvosd_text_params.display_text = "Frame Number = {} Number of Objects = {} Vehicle_count = {} Person_count = {}".format(frame_number, num_rects, obj_counter[PGIE_CLASS_ID_VEHICLE], obj_counter[PGIE_CLASS_ID_PERSON])
 
         # Now set the offsets where the string should appear
         py_nvosd_text_params.x_offset = 10
@@ -64,49 +59,34 @@ class Probe(pydstream.BaseProbe):
         
         # Using pyds.get_string() to get display_text as string
         print(pyds.get_string(py_nvosd_text_params.display_text))
-        pyds.nvds_add_display_meta_to_frame(frame_meta, display_meta)
+        pyds.nvds_add_display_meta_to_frame(self.frame_meta, display_meta)
         
         #past traking meta data
         if (past_tracking_meta[0] == 1):
-            l_user = self.batch_meta.batch_user_meta_list
-            
-            with self.suppress:
-                while l_user is not None:
-                    # Note that l_user.data needs a cast to pyds.NvDsUserMeta
-                    # The casting is done by pyds.NvDsUserMeta.cast()
+            for user_meta in self.user_meta_list:
+                if (user_meta and user_meta.base_meta.meta_type == pyds.NvDsMetaType.NVDS_TRACKER_PAST_FRAME_META):
+                    # Note that user_meta.user_meta_data needs a cast to pyds.NvDsPastFrameObjBatch
+                    # The casting is done by pyds.NvDsPastFrameObjBatch.cast()
                     # The casting also keeps ownership of the underlying memory
                     # in the C code, so the Python garbage collector will leave
                     # it alone
-                    user_meta = pyds.NvDsUserMeta.cast(l_user.data)
+                    pPastFrameObjBatch = pyds.NvDsPastFrameObjBatch.cast(user_meta.user_meta_data)
                     
-                    if (user_meta and user_meta.base_meta.meta_type == pyds.NvDsMetaType.NVDS_TRACKER_PAST_FRAME_META):
-                        # Note that user_meta.user_meta_data needs a cast to pyds.NvDsPastFrameObjBatch
-                        # The casting is done by pyds.NvDsPastFrameObjBatch.cast()
-                        # The casting also keeps ownership of the underlying memory
-                        # in the C code, so the Python garbage collector will leave
-                        # it alone
-                        pPastFrameObjBatch = pyds.NvDsPastFrameObjBatch.cast(user_meta.user_meta_data)
-                        
-                        for trackobj in pyds.NvDsPastFrameObjBatch.list(pPastFrameObjBatch):
-                            print("streamId=",trackobj.streamID)
-                            print("surfaceStreamID=",trackobj.surfaceStreamID)
-                            for pastframeobj in pyds.NvDsPastFrameObjStream.list(trackobj):
-                                print("numobj=",pastframeobj.numObj)
-                                print("uniqueId=",pastframeobj.uniqueId)
-                                print("classId=",pastframeobj.classId)
-                                print("objLabel=",pastframeobj.objLabel)
-                                for objlist in pyds.NvDsPastFrameObjList.list(pastframeobj):
-                                    print('frameNum:', objlist.frameNum)
-                                    print('tBbox.left:', objlist.tBbox.left)
-                                    print('tBbox.width:', objlist.tBbox.width)
-                                    print('tBbox.top:', objlist.tBbox.top)
-                                    print('tBbox.right:', objlist.tBbox.height)
-                                    print('confidence:', objlist.confidence)
-                                    print('age:', objlist.age)
-                    
-                    l_user = l_user.next
-        
-        # Get frame rate through this probe
-        self.perf.update(f"stream-{frame_meta.pad_index}")
+                    for trackobj in pyds.NvDsPastFrameObjBatch.list(pPastFrameObjBatch):
+                        print("streamId=",trackobj.streamID)
+                        print("surfaceStreamID=",trackobj.surfaceStreamID)
+                        for pastframeobj in pyds.NvDsPastFrameObjStream.list(trackobj):
+                            print("numobj=",pastframeobj.numObj)
+                            print("uniqueId=",pastframeobj.uniqueId)
+                            print("classId=",pastframeobj.classId)
+                            print("objLabel=",pastframeobj.objLabel)
+                            for objlist in pyds.NvDsPastFrameObjList.list(pastframeobj):
+                                print('frameNum:', objlist.frameNum)
+                                print('tBbox.left:', objlist.tBbox.left)
+                                print('tBbox.width:', objlist.tBbox.width)
+                                print('tBbox.top:', objlist.tBbox.top)
+                                print('tBbox.right:', objlist.tBbox.height)
+                                print('confidence:', objlist.confidence)
+                                print('age:', objlist.age)
 
 osd_sink_pad_buffer_probe = Probe()
