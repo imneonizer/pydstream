@@ -44,9 +44,9 @@ pipeline.set_property('tracker.config-file-path', "dstest2_tracker_config.txt")
 # link elements
 pipeline.link('source.h264parser.decoder')
 
-sinkpad = pipeline.streammux.get_request_pad("sink_0")
 srcpad = pipeline.decoder.get_static_pad("src")
-srcpad.link(sinkpad)
+sinkpad = pipeline.streammux.get_request_pad("sink_0")
+pipeline.link(srcpad, sinkpad)
 
 pipeline.link('streammux.pgie.tracker.sgie1.sgie2.sgie3.nvvidconv.nvosd')
 

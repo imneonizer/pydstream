@@ -1,7 +1,7 @@
 import sys
 import math
 from .multistream import MultiStream
-from .common import read_config
+from .common import read_config, gi
 
 class Pipeline(MultiStream):
     from gi.repository import GObject, Gst
@@ -38,15 +38,21 @@ class Pipeline(MultiStream):
         return element
     
     def link(self, element_a, element_b=None, delimiter="."):
-        if delimiter in element_a and element_b is None:
+        if (element_b is None) and (delimiter in str(element_a)):
             print("Linking:", element_a.replace(delimiter, " -> "))
             elements = element_a.split(delimiter)
             l = len(elements)
             for i in range(l - 1):
                 self.link(elements[i], elements[i+1])
         else:
-            element_a = self.__getitem__(element_a)
-            element_b = self.__getitem__(element_b)
+            if isinstance(element_a, gi.overrides.Gst.Pad) and isinstance(element_a, gi.overrides.Gst.Pad):
+                print(f"Linking: {element_a.parent.name} -> {element_b.parent.name}")
+            
+            if isinstance(element_a, str):
+                element_a = self.__getitem__(element_a)
+            if isinstance(element_b, str):
+                element_b = self.__getitem__(element_b)
+            
             element_a.link(element_b)
     
     def add_probe(self, element, callback, pad=None, ptype=None, n=0, delimiter='.'):

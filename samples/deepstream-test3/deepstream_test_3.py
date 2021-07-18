@@ -23,7 +23,7 @@ pipeline.add('nvvideoconvert', 'nvvidconv')
 pipeline.add('nvdsosd', 'nvosd')
 pipeline.add('nveglglessink', 'sink')
 pipeline.add('multiuri', uri)
-[pipeline.add('queue', f'queue_{i}') for i in range(5)]
+[pipeline.add('queue', f'queue{i}') for i in range(5)]
 
 if pydstream.is_aarch64():
     pipeline.add('nvegltransform', 'transform')
@@ -47,12 +47,12 @@ pipeline.override_property("pgie.batch-size", number_sources)
 pipeline.override_property('streammux.live-source', 1)
 
 # link elements
-pipeline.link('streammux.queue_0.pgie.queue_1.tiler.queue_2.nvvidconv.queue_3.nvosd')
+pipeline.link('streammux.queue0.pgie.queue1.tiler.queue2.nvvidconv.queue3.nvosd')
 
 if pydstream.is_aarch64():
-    pipeline.link('nvosd.queue_4.transform.sink')
+    pipeline.link('nvosd.queue4.transform.sink')
 else:
-    pipeline.link('nvosd.queue_4.sink')
+    pipeline.link('nvosd.queue4.sink')
 
 # Lets add probe to get informed of the meta data generated, we add probe to
 # the sink pad of the osd element, since by that time, the buffer would have
