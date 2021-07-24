@@ -16,11 +16,11 @@ class BaseProbe:
         self.info = info
         self.u_data = u_data
 
-        batch_meta = self.batch_meta
-        if not batch_meta:
+        self.batch_meta = self.get_batch_meta()
+        if not self.batch_meta:
             return Gst.PadProbeReturn.OK
         
-        for l_frame in self.iterate(batch_meta.frame_meta_list):
+        for l_frame in self.iterate(self.batch_meta.frame_meta_list):
             # Note that l_frame.data needs a cast to pyds.NvDsFrameMeta
             # The casting is done by pyds.NvDsFrameMeta.cast()
             # The casting also keeps ownership of the underlying memory
@@ -36,8 +36,7 @@ class BaseProbe:
         
         return cb_return or Gst.PadProbeReturn.OK
     
-    @property
-    def batch_meta(self):
+    def get_batch_meta(self):
         """
         Retrieve batch metadata from the gst_buffer
         Note that pyds.gst_buffer_get_nvds_batch_meta() expects the
