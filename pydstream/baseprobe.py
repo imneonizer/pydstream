@@ -16,7 +16,11 @@ class BaseProbe:
         self.info = info
         self.u_data = u_data
 
-        for l_frame in self.iterate(self.batch_meta.frame_meta_list):
+        batch_meta = self.batch_meta
+        if not batch_meta:
+            return Gst.PadProbeReturn.OK
+        
+        for l_frame in self.iterate(batch_meta.frame_meta_list):
             # Note that l_frame.data needs a cast to pyds.NvDsFrameMeta
             # The casting is done by pyds.NvDsFrameMeta.cast()
             # The casting also keeps ownership of the underlying memory

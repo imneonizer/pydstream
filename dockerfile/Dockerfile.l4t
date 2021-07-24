@@ -26,6 +26,10 @@ RUN git clone https://github.com/7633/pyds_analytics_meta.git /pyds_analytics_me
     cd /pyds_analytics_meta && git checkout 1f0cccf && \
     bash build.sh
 
+# install kafka dependencies
+RUN apt-get install -y \
+    libglib2.0 libglib2.0-dev libjansson4  libjansson-dev librdkafka1=0.11.3-1build1
+
 # setup default python and pip alias
 RUN echo 'alias python="/usr/bin/python3"' >> /root/.bashrc && \
     echo 'alias pip="/usr/bin/pip3"' >> /root/.bashrc
