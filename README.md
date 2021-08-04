@@ -10,8 +10,9 @@
 
 <p align="center">
   <a href="https://github.com/imneonizer/pydstream">
-    <img src="Docs/banner-logo.png" alt="Logo" width="800">
+    <img src="Docs/banner-logo.jpg" alt="Logo" width="800">
   </a>
+
 
   <h3 align="center">Deepstream Python API</h3>
 
