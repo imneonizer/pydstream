@@ -5,7 +5,6 @@ import contextlib
 class BaseProbe:
     def __init__(self):
         self.perf = Perf()
-        self.enable_perf = True
     
     def __call__(self, pad, info, u_data):
         """
@@ -29,7 +28,7 @@ class BaseProbe:
             self.frame_meta = pyds.NvDsFrameMeta.cast(l_frame.data)
             
             # get fps through this probe
-            self.enable_perf and self.perf.update(self.frame_meta.pad_index)
+            self.pipeline.enable_perf and self.perf.update(self.frame_meta.pad_index)
             
             # user defined callback for processing metadata
             cb_return = self.__callback__()
@@ -43,6 +42,14 @@ class BaseProbe:
         C address of gst_buffer as input, which is obtained with hash(gst_buffer)
         """
         return pyds.gst_buffer_get_nvds_batch_meta(hash(self.info.get_buffer()))
+    
+    def get_bbox_info(self, obj_meta):
+        rect_params = obj_meta.rect_params
+        x1,y1,x2,y2 = int(rect_params.left), \
+            int(rect_params.top), \
+            int(rect_params.left) + int(rect_params.width), \
+            int(rect_params.top) + int(rect_params.height)
+        return (obj_meta.class_id, x1,y1,x2,y2, round(abs(obj_meta.confidence), 3))
     
     @property
     def obj_meta_list(self):

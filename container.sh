@@ -2,7 +2,7 @@
 
 # Check if running with root
 if  [ "$EUID" -ne 0 ];then
-    echo "usage: sudo $0 [--build | --run | --attach | --kill]"
+    sudo -E $0 $@;
     exit 1
 fi
 
@@ -30,21 +30,26 @@ elif [[ $1 == "--run" || $1 == "-r" ]];then
     export DISPLAY=:1
     xhost +
     call "docker run --rm -it --gpus all \
-    -v /home/$USER/videos:/videos \
+    -v $HOME/Videos:/videos \
     -v `pwd`:/app \
     -e DISPLAY=$DISPLAY \
     -v /tmp/.X11-unix/:/tmp/.X11-unix \
     --net host \
     --name pydstream \
     --hostname pydstream \
-    pydstream bash"
+    pydstream ${2:-bash}"
+    exit
 
 elif [[ $1 == "--attach" || $1 == "-a" ]];then
     # Attach to already running container
-    call "docker exec -it $NAME bash"
+    call "docker exec -it $NAME ${2:-bash}"
+    exit
 
 elif [[ $1 == "--kill" || $1 == "-k" ]];then
     # Kill any other existing container
     call "docker kill $NAME"
+    exit
 
 fi
+
+echo "usage: sudo $0 [--build | --run | --attach | --kill]"

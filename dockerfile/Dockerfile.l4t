@@ -1,19 +1,15 @@
 # base image to start from
 FROM nvcr.io/nvidia/deepstream-l4t:5.0.1-20.09-samples
 
-# install python dependencies
-RUN apt update -y
-RUN apt install -y python3-dev python3-pip \
+# install python and gstreamer-python dependencies
+RUN apt update -y && \
+    apt install -y python3-dev python3-pip \
     python3-numpy python3-opencv \
-    python3-gst-1.0 python3-gi
-
-# install gstreamer python dependencies
-RUN apt install -y libgirepository1.0-dev gstreamer1.0-rtsp \
+    python3-gst-1.0 python3-gi \
+    libgirepository1.0-dev gstreamer1.0-rtsp \
     libgstrtspserver-1.0-0 gobject-introspection gir1.2-gst-rtsp-server-1.0 \
-    libgstreamer-plugins-base1.0-dev
-
-# install utility tools
-RUN apt install -y vim git
+    libgstreamer-plugins-base1.0-dev gstreamer1.0-python3-plugin-loader \
+    vim git
 
 # install deepstream python sample apps
 ENV DS_PYTHON="/opt/nvidia/deepstream/deepstream/sources/deepstream_python_apps"
@@ -27,7 +23,7 @@ RUN git clone https://github.com/7633/pyds_analytics_meta.git /pyds_analytics_me
     bash build.sh
 
 # install kafka dependencies
-RUN apt-get install -y \
+RUN apt update -y && apt install -y \
     libglib2.0 libglib2.0-dev libjansson4  libjansson-dev librdkafka1=0.11.3-1build1
 
 # setup default python and pip alias

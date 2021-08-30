@@ -12,6 +12,8 @@ class Pipeline(MultiStream):
         self.Gst.init(None)
         self.pipeline = self.Gst.Pipeline()
         self.islive = False
+        self.enable_perf = False
+        self.label = {} # to store gie class ids
         assert self.pipeline, "Unable to create Pipeline"
     
     def make(self, element, name=None):
@@ -59,6 +61,7 @@ class Pipeline(MultiStream):
         if delimiter in element:
             element, pad = element.split(delimiter)
 
+        callback.pipeline = self
         ptype = ptype or self.Gst.PadProbeType.BUFFER
         pad = self.__getitem__(element).get_static_pad(pad)
         pad.add_probe(ptype, callback, n)
@@ -80,6 +83,11 @@ class Pipeline(MultiStream):
             element = self.__getitem__(element)
             element.set_property('rows', rows)
             element.set_property('columns', columns)
+            return
+        
+        if key == "label-file-path":
+            with open(val, "r") as f:
+                self.label[element] = [x for x in f.read().split("\n") if x]
             return
 
         element = self.__getitem__(element)
@@ -119,7 +127,7 @@ class Pipeline(MultiStream):
         loop = self.GObject.MainLoop()
         bus = self.pipeline.get_bus()
         bus.add_signal_watch()
-        bus.connect ("message", self.bus_call, loop)
+        bus.connect("message", self.bus_call, loop)
         
         # start play back and listen to events
         print("Starting pipeline")
