@@ -27,7 +27,6 @@ if [[ $1 == "--build" || $1 == "-b" ]];then
 
 elif [[ $1 == "--run" || $1 == "-r" ]];then
     # Run a new container
-    export DISPLAY=:1
     xhost +
     call "docker run --rm -it --gpus all \
     -v $HOME/Videos:/videos \
