@@ -24,6 +24,7 @@ NAME="pydstream"
 if [[ $1 == "--build" || $1 == "-b" ]];then
     # Build the container
     call "docker build . -t $NAME -f $DOCKER_FILE"
+    exit
 
 elif [[ $1 == "--run" || $1 == "-r" ]];then
     # Run a new container
