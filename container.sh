@@ -9,6 +9,7 @@ fi
 NAME="pydstream" # image/container name
 REPO="nvcr.io/nvidia/deepstream"
 TAG="5.0.1-20.09-samples"
+ARGS="${*:2}"
 
 # Add l4t if running on Jetson
 [ -f "/etc/nv_tegra_release" ] && REPO="$REPO-l4t";
@@ -20,7 +21,7 @@ function call {
 
 if [[ $1 == "--build" || $1 == "-b" ]];then
     # Build the container
-    call "docker build -t $NAME --build-arg BASE_IMAGE=$REPO:$TAG ."
+    call "docker build -t $NAME --build-arg BASE_IMAGE=$REPO:$TAG . $ARGS"
     exit
 
 elif [[ $1 == "--run" || $1 == "-r" ]];then
@@ -34,12 +35,12 @@ elif [[ $1 == "--run" || $1 == "-r" ]];then
     --net host \
     --name $NAME \
     --hostname $NAME \
-    $NAME ${2:-bash}"
+    $NAME ${ARGS:-bash}"
     exit
 
 elif [[ $1 == "--attach" || $1 == "-a" ]];then
     # Attach to already running container
-    call "docker exec -it $NAME ${2:-bash}"
+    call "docker exec -it $NAME ${ARGS:-bash}"
     exit
 
 elif [[ $1 == "--kill" || $1 == "-k" ]];then
