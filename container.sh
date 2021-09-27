@@ -6,24 +6,21 @@ if  [ "$EUID" -ne 0 ];then
     exit 1
 fi
 
-# select correct dockerfile based on platform
-if [ -f "/etc/nv_tegra_release" ];then
-    DOCKER_FILE="dockerfile/Dockerfile.l4t"
-else
-    DOCKER_FILE="dockerfile/Dockerfile.x86"
-fi
+NAME="pydstream" # image/container name
+REPO="nvcr.io/nvidia/deepstream"
+TAG="5.0.1-20.09-samples"
+
+# Add l4t if running on Jetson
+[ -f "/etc/nv_tegra_release" ] && REPO="$REPO-l4t";
 
 # function to echo and execute commands
 function call {
     echo ">> $1";$1
 }
 
-# default container name
-NAME="face-recognition-deepstream"
-
 if [[ $1 == "--build" || $1 == "-b" ]];then
     # Build the container
-    call "docker build . -t $NAME -f $DOCKER_FILE"
+    call "docker build -t $NAME --build-arg BASE_IMAGE=$REPO:$TAG ."
     exit
 
 elif [[ $1 == "--run" || $1 == "-r" ]];then

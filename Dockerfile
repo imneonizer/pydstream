@@ -1,5 +1,6 @@
 # base image to start from
-FROM nvcr.io/nvidia/deepstream:5.0.1-20.09-samples
+ARG BASE_IMAGE=nvcr.io/nvidia/deepstream:5.1-21.02-samples
+FROM $BASE_IMAGE
 
 # install python and gstreamer-python dependencies
 RUN apt update -y && \
@@ -16,11 +17,8 @@ ENV DS_PYTHON="/opt/nvidia/deepstream/deepstream/sources/deepstream_python_apps"
 RUN git clone https://github.com/NVIDIA-AI-IOT/deepstream_python_apps.git $DS_PYTHON
 RUN bash -c "cd /opt/nvidia/deepstream/deepstream/lib && python3 setup.py install"
 
-# install bindings to access nvanalytics metadata
+# install bindings to access metadata
 RUN pip3 install pybind11
-RUN git clone https://github.com/7633/pyds_analytics_meta.git /pyds_analytics_meta && \
-    cd /pyds_analytics_meta && git checkout 1f0cccf && \
-    bash build.sh
 
 # install kafka dependencies
 RUN apt update -y && apt install -y \

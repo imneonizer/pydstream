@@ -5,7 +5,7 @@ import uuid
 
 consumer = KafkaConsumer(
     'test',
-    bootstrap_servers='192.168.1.9:9092',
+    bootstrap_servers='192.168.1.42:9092',
     auto_offset_reset='latest',
     enable_auto_commit=True,
     group_id=str(uuid.uuid1()),
