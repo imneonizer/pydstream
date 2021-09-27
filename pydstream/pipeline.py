@@ -1,11 +1,12 @@
 import sys
+import os
+import tempfile
 import math
 from .multistream import MultiStream
 from .common import read_config, gi
 
 class Pipeline(MultiStream):
     from gi.repository import GObject, Gst
-    unsupported_config = ["tracker"]
 
     def __init__(self):
         self.GObject.threads_init()
@@ -70,8 +71,8 @@ class Pipeline(MultiStream):
         if delimiter in element:
             element, key = element.split(delimiter)
 
-        if key == "config-file-path" and element in self.unsupported_config:
-            # explicitly set properties
+        if key == "config-file-path" and element == "tracker":
+            # explicitly set tracker properties
             tracker_config = read_config(val).get(element)
             for k,v in tracker_config.items():
                 self.set_property(element=element, key=k, val=v)
@@ -91,6 +92,24 @@ class Pipeline(MultiStream):
             return
 
         element = self.__getitem__(element)
+        
+        # check if pgie config file property and validate engine file path
+        if (key == "config-file-path") and ('GstNvInfer' in str(type(element))):
+            engine_file = read_config(val).get('property').get('model-engine-file', '')
+            if engine_file and (not os.path.exists(engine_file)):
+                print(f"Engine file doesn't exists: {engine_file}, creating a temporary gie config without 'model-engine-file' property.")
+                fd, path = tempfile.mkstemp()
+                try:
+                    with os.fdopen(fd, 'w') as tmp:
+                        with open(val, 'r') as f:
+                            for line in f.readlines():
+                                if 'model-engine-file' not in line:
+                                    tmp.write(line)
+                    element.set_property('config-file-path', path)
+                finally:
+                    os.remove(path)
+                    return
+        
         element.set_property(key, val)
 
     def override_property(self, element, value):

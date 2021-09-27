@@ -32,6 +32,7 @@ elif [[ $1 == "--run" || $1 == "-r" ]];then
     -v `pwd`:/app \
     -e DISPLAY=$DISPLAY \
     -v /tmp/.X11-unix/:/tmp/.X11-unix \
+    --privileged \
     --net host \
     --name $NAME \
     --hostname $NAME \
