@@ -19,7 +19,7 @@ function call {
 }
 
 # default container name
-NAME="pydstream"
+NAME="face-recognition-deepstream"
 
 if [[ $1 == "--build" || $1 == "-b" ]];then
     # Build the container
@@ -35,9 +35,9 @@ elif [[ $1 == "--run" || $1 == "-r" ]];then
     -e DISPLAY=$DISPLAY \
     -v /tmp/.X11-unix/:/tmp/.X11-unix \
     --net host \
-    --name pydstream \
-    --hostname pydstream \
-    pydstream ${2:-bash}"
+    --name $NAME \
+    --hostname $NAME \
+    $NAME ${2:-bash}"
     exit
 
 elif [[ $1 == "--attach" || $1 == "-a" ]];then
