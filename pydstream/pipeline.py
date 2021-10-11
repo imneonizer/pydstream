@@ -96,7 +96,7 @@ class Pipeline(MultiStream):
         # check if pgie config file property and validate engine file path
         if (key == "config-file-path") and ('GstNvInfer' in str(type(element))):
             engine_file = read_config(val).get('property').get('model-engine-file', '')
-            if engine_file and (not os.path.exists(engine_file)):
+            if engine_file and (not os.path.exists(engine_file)) and (os.path.basename(engine_file) not in os.listdir(os.path.dirname(val))):
                 print(f"Engine file doesn't exists: {engine_file}, creating a temporary gie config without 'model-engine-file' property.")
                 fd, path = tempfile.mkstemp()
                 try:

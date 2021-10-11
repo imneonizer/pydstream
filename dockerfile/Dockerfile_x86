@@ -1,6 +1,5 @@
 # base image to start from
-ARG BASE_IMAGE=nvcr.io/nvidia/deepstream:5.1-21.02-samples
-FROM $BASE_IMAGE
+FROM nvcr.io/nvidia/deepstream:5.1-21.02-samples
 
 # install python and gstreamer-python dependencies
 RUN apt update -y && \

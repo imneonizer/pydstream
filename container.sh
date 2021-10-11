@@ -7,12 +7,11 @@ if  [ "$EUID" -ne 0 ];then
 fi
 
 NAME="pydstream" # image/container name
-REPO="nvcr.io/nvidia/deepstream"
-TAG="5.0.1-20.09-samples"
+DOCKERFILE="dockerfile/Dockerfile_x86"
 ARGS="${*:2}"
 
 # Add l4t if running on Jetson
-[ -f "/etc/nv_tegra_release" ] && REPO="$REPO-l4t";
+[ -f "/etc/nv_tegra_release" ] && DOCKERFILE="dockerfile/Dockerfile_l4t";
 
 # function to echo and execute commands
 function call {
@@ -21,7 +20,7 @@ function call {
 
 if [[ $1 == "--build" || $1 == "-b" ]];then
     # Build the container
-    call "docker build -t $NAME --build-arg BASE_IMAGE=$REPO:$TAG . $ARGS"
+    call "docker build -t $NAME -f $DOCKERFILE . $ARGS"
     exit
 
 elif [[ $1 == "--run" || $1 == "-r" ]];then
